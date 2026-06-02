@@ -9,8 +9,12 @@ import Transactions from "./pages/Transactions";
 import Bills from "./pages/Bills";
 
 import ProtectedRoute from "./utils/ProtectedRoute";
+import useKeepAlive from "./hooks/useKeepAlive";
 
 function App() {
+  // ✅ Keeps Render backend awake — prevents cold start login delay
+  useKeepAlive();
+
   return (
     <BrowserRouter>
       <Routes>
@@ -30,7 +34,14 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/bills" element={<Bills />} />
+        <Route
+          path="/bills"
+          element={
+            <ProtectedRoute>
+              <Bills />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/transactions"

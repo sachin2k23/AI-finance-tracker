@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../../services/api";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 
 function Login() {
@@ -9,6 +10,9 @@ function Login() {
     password: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -17,11 +21,10 @@ function Login() {
     });
   };
 
-  const navigate = useNavigate();
-
 const handleSubmit = async (e) => {
   e.preventDefault();
   setErrorMessage("");
+  setIsLoading(true);
 
   try {
     const response = await api.post("/auth/login", {
@@ -29,14 +32,15 @@ const handleSubmit = async (e) => {
       password: formData.password,
     });
 
-    // Save token
-    localStorage.setItem("token", response.data.token);
-
-    // alert("Login successful ✅");
+    const { token, user } = response.data;
+    
+    // Use AuthContext to store token and user data
+    login(token, user);
 
     // Redirect to dashboard
     navigate("/dashboard");
   } catch (error) {
+    setIsLoading(false);
     const message = error.response?.data?.message || "Login failed";
     setErrorMessage(message);
     console.error("Login failed:", error.response?.data || error.message);
@@ -97,9 +101,14 @@ const handleSubmit = async (e) => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+            disabled={isLoading}
+            className={`w-full py-2 rounded-lg text-white font-medium transition ${
+              isLoading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700"
+            }`}
           >
-            Sign In
+            {isLoading ? "Signing In..." : "Sign In"}
           </button>
         </form>
 
